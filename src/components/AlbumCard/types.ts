@@ -4,9 +4,8 @@ export interface AlbumCardPropsType {
     label: string;
   };
   artistName: string;
-  artistDetailUrl: string;
   category: string;
   releaseDate: string;
   price: string;
-  albumUrl: string;
+  onPressDetail: () => void;
 }

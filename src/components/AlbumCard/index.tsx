@@ -8,17 +8,13 @@ const AlbumCard: React.FC<AlbumCardPropsType> = ({
   title,
   images,
   artistName,
-  artistDetailUrl,
   category,
   releaseDate,
   price,
-  albumUrl,
+  onPressDetail,
 }) => {
-  const onSeeArtist = () => Linking.openURL(artistDetailUrl);
-  const onSeeAlbum = () => Linking.openURL(albumUrl);
-
   return (
-    <Pressable onPress={onSeeAlbum}>
+    <Pressable onPress={onPressDetail}>
       <View style={styles.container}>
         <View style={styles.rowContainer}>
           <Image
@@ -34,12 +30,10 @@ const AlbumCard: React.FC<AlbumCardPropsType> = ({
           <View style={styles.detailContainer}>
             <View>
               <Text style={styles.titleText}>{title}</Text>
-              <Pressable onPress={onSeeArtist}>
-                <View style={styles.artistContainer}>
-                  <Text style={styles.artistNameText}>{artistName}</Text>
-                  <ArrowRight />
-                </View>
-              </Pressable>
+              <View style={styles.artistContainer}>
+                <Text style={styles.artistNameText}>{artistName}</Text>
+                <ArrowRight />
+              </View>
             </View>
             <View style={styles.bottomDetail}>
               <View>

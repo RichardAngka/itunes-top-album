@@ -5,15 +5,20 @@ import AlbumCard from "../../components/AlbumCard";
 import AppLoading from "../../../loading";
 import useHttpReq from "../../hooks/useHttpReq";
 import Header from "./Header";
+import SearchBar from "./SearchBar";
+import { useNavigation } from "@react-navigation/native";
 
 const TopAlbum = () => {
+  const { navigate } = useNavigation();
   const [sortBy, setSortBy] = useState<string | null>(null);
+  const [value, setValue] = useState<string>("");
   const { data, isLoading } = useHttpReq({
     method: "get",
     baseUrl: "https://itunes.apple.com/us/rss/topalbums/limit=100/json",
   });
+  const [filteredData, setFilteredData] = useState([]);
 
-  const filteredData = () => {
+  const sortData = () => {
     if (sortBy === "price")
       return data?.feed?.entry?.sort((a: any, b: any) => {
         if (
@@ -31,7 +36,6 @@ const TopAlbum = () => {
 
     if (sortBy === "artist")
       return data?.feed?.entry?.sort((a: any, b: any) => {
-        console.log(a["im:artist"]?.label, b["im:artist"]?.label);
         if (a["im:artist"]?.label > b["im:artist"]?.label) return 1;
         if (a["im:artist"]?.label < b["im:artist"]?.label) return -1;
         return 0;
@@ -39,7 +43,6 @@ const TopAlbum = () => {
 
     if (sortBy === "date")
       return data?.feed?.entry?.sort((a: any, b: any) => {
-        console.log(a["im:releaseDate"]?.label, b["im:releaseDate"]?.label);
         if (a["im:releaseDate"]?.label > b["im:releaseDate"]?.label) return 1;
         if (a["im:releaseDate"]?.label < b["im:releaseDate"]?.label) return -1;
         return 0;
@@ -48,7 +51,27 @@ const TopAlbum = () => {
     return data?.feed?.entry;
   };
 
+  const handleSearchAlbum = () => {
+    if (value) {
+      const newData = data?.feed?.entry?.filter((item: any) => {
+        const itemData = item.title.label
+          ? item.title.label.toUpperCase()
+          : "".toUpperCase();
+        const textData = value.toUpperCase();
+        return itemData.indexOf(textData) > -1;
+      });
+      return setFilteredData(newData);
+    }
+    return setFilteredData(data);
+  };
+
+  const albumData = () => {
+    if (Boolean(value)) return filteredData;
+    return sortData();
+  };
+
   if (isLoading) return <AppLoading />;
+
   return (
     <>
       <Header
@@ -56,19 +79,33 @@ const TopAlbum = () => {
         onFilterDate={() => setSortBy("date")}
         onFilterPrice={() => setSortBy("price")}
       />
+      <SearchBar
+        onChangeValue={(text: string) => setValue(text)}
+        value={value}
+        placeholder="Search Music"
+        onEndEditing={handleSearchAlbum}
+      />
       <ScrollView style={styles.scrollView}>
-        {filteredData()?.map((item: any, idx: number) => (
+        {albumData()?.map((item: any, idx: number) => (
           <Fragment key={idx}>
             {!!idx && <View style={styles.divider} />}
             <AlbumCard
               title={item["im:name"].label}
               images={item["im:image"][0]}
               artistName={item["im:artist"].label}
-              artistDetailUrl={item["im:artist"]?.attributes?.href}
               category={item.category?.attributes?.label}
               releaseDate={item["im:releaseDate"]?.attributes?.label}
               price={item["im:price"]?.label}
-              albumUrl={item.link?.attributes?.href}
+              onPressDetail={() =>
+                // @ts-ignore
+                navigate("Detail", {
+                  images: item["im:image"][0],
+                  artistName: item["im:artist"].label,
+                  title: item["im:name"].label,
+                  genre: item.category?.attributes?.label,
+                  rights: item.rights?.label,
+                })
+              }
             />
           </Fragment>
         ))}
